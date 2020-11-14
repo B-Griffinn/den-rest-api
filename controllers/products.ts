@@ -1,5 +1,6 @@
 // deno-lint-ignore-file
-import {Product} from '../types.ts'
+import { v4 } from 'https://deno.land/std/uuid/mod.ts'
+import { Product } from '../types.ts'
 
 const products: Product[] = [ 
     {
@@ -57,9 +58,35 @@ const getProduct = ({ params, response }: { params: {id : string}, response: any
 
 // @description    ADD product
 // @route          POST /api/v1/products
-const addProduct = ({ response }: { response: any }) => {
-    response.body = 'ADD'
-}
+const addProduct = async ({ request, response }: { request: any, response: any }) => {
+    // capture the body of the incoming request aka the new product being added to our DB
+    // body() method returns a promise which is why we need async await
+    const body = await request.body()
+
+
+    // check and ensure the user has provided the end point with the proper information
+    if (!request.hasBody) {
+        response.status = 400
+        response.body = {
+            success: false,
+            message: 'Please provide the required information.'
+        }
+    } else {
+        // get the type/value from the body for our product
+        const newproduct: Product = await body.value
+        // generate an id on the product so the user does not have to
+        newproduct.id = v4.generate()
+        // add the incoming body to the 'database' aka our products array
+        products.push(newproduct)
+
+        response.status = 201
+        response.body = {
+            success: true,
+            data: newproduct
+        }
+    }
+
+}   
 
 // @description    UPDATE product
 // @route          PUT /api/v1/products/:id
