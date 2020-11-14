@@ -2,7 +2,7 @@
 import { v4 } from 'https://deno.land/std/uuid/mod.ts'
 import { Product } from '../types.ts'
 
-const products: Product[] = [ 
+let products: Product[] = [ 
     {
         id: '1',
         name: 'P1',
@@ -85,13 +85,42 @@ const addProduct = async ({ request, response }: { request: any, response: any }
             data: newproduct
         }
     }
-
 }   
 
 // @description    UPDATE product
 // @route          PUT /api/v1/products/:id
-const updateProduct = ({ response }: { response: any }) => {
-    response.body = 'UPDATE'
+const updateProduct = async ({ params, request, response }: { params: { id: string }, request: any, response: any }) => {
+    // get product through our paramas
+    const product: Product | undefined = products.find(p => p.id === params.id)
+
+    // if the product id exists then let's updateProduct
+    if (product) {
+        // get new data from the body
+        const body = await request.body()
+
+        // udpated body comes from body.value
+        // whatever is sent will be put in the `udpateData` variable below
+        // allow name to be neglected
+        const updateData: { name?: string; description: string; price: number } = await body.value
+        console.log("updateData", updateData)
+
+        // map through our products array and udpate the correct product based off ID with our variable above 
+        products = products.map(p => p.id === params.id ? {
+            ...p, 
+            ...updateData
+        } : p )
+        response.status = 200
+        response.body = {
+            success: true,
+            data: products
+        }
+    } else {
+        response.status = 404
+        response.body = {
+            success: false,
+            message: `The product id ${params.id} does not exist.`
+        }
+    }
 }
 
 // @description    DELETE product
