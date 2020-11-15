@@ -1,6 +1,12 @@
 // deno-lint-ignore-file
+import { Client } from 'https://deno.land/x/postgres/mod.ts'
 import { v4 } from 'https://deno.land/std/uuid/mod.ts'
 import { Product } from '../types.ts'
+import dbCreds from '../config.ts'
+
+
+// create our denon client / init client
+const client = new Client(dbCreds)
 
 let products: Product[] = [ 
     {
@@ -72,18 +78,7 @@ const addProduct = async ({ request, response }: { request: any, response: any }
             message: 'Please provide the required information.'
         }
     } else {
-        // get the type/value from the body for our product
-        const newproduct: Product = await body.value
-        // generate an id on the product so the user does not have to
-        newproduct.id = v4.generate()
-        // add the incoming body to the 'database' aka our products array
-        products.push(newproduct)
-
-        response.status = 201
-        response.body = {
-            success: true,
-            data: newproduct
-        }
+       
     }
 }   
 
