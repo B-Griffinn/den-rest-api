@@ -102,7 +102,6 @@ const updateProduct = async ({ params, request, response }: { params: { id: stri
         // whatever is sent will be put in the `udpateData` variable below
         // allow name to be neglected
         const updateData: { name?: string; description: string; price: number } = await body.value
-        console.log("updateData", updateData)
 
         // map through our products array and udpate the correct product based off ID with our variable above 
         products = products.map(p => p.id === params.id ? {
@@ -125,16 +124,36 @@ const updateProduct = async ({ params, request, response }: { params: { id: stri
 
 // @description    DELETE product
 // @route          DELETE /api/v1/products/:id
-const deleteProduct = async ({ params, response }: { params: { id: string }, response: any }) => {
+const deleteProduct =  ({ params, response }: { params: { id: string }, response: any }) => {
 
-    // filter our products array using 
-    products = products.filter(p => p.id !== params.id)
+    // check if the item exists before deleting by looking for it
+    const product: Product | undefined = products.find(p => p.id === params.id)
 
+    // if id is found then we run the delete otherwise 404 does not exist
+    if (product) {       
+        products = products.filter(p => p.id !== params.id)
+        response.status = 200
         response.body = {
             success: true,
-            message: `${response.body.name} has been deleted`
+            msg: `Product with id ${params.id} has been deleted`
         }
-
+    } else if (!product) {
+        response.status = 404
+        response.body = {
+            success: false,
+            message: `The product id ${params.id} does not exist.`
+        }
+    } else {
+        // if IF statements do not pass
+        response.status = 500
+        response.body = {
+        success: false,
+        message: 'Internal Server error'
+        }
+    }
 }
+
+
+
 
 export { getProducts, getProduct, addProduct, updateProduct, deleteProduct }

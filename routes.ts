@@ -10,7 +10,4 @@ router.get('/api/v1/products', getProducts)
     .put('/api/v1/products/:id', updateProduct)
     .delete('/api/v1/products/:id', deleteProduct)
     
-
-
-
 export default router
