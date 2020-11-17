@@ -1,8 +1,7 @@
-// deno-lint-ignore-file
 import { Client } from 'https://deno.land/x/postgres/mod.ts'
 import { v4 } from 'https://deno.land/std/uuid/mod.ts'
 import { Product } from '../types.ts'
-import dbCreds from '../config.ts'
+import {dbCreds} from '../config.ts'
 
 
 // create our denon client / init client
@@ -69,6 +68,10 @@ const addProduct = async ({ request, response }: { request: any, response: any }
     // body() method returns a promise which is why we need async await
     const body = await request.body()
 
+    // single out the product from the body
+    const product = body.value
+
+
 
     // check and ensure the user has provided the end point with the proper information
     if (!request.hasBody) {
@@ -78,7 +81,28 @@ const addProduct = async ({ request, response }: { request: any, response: any }
             message: 'Please provide the required information.'
         }
     } else {
-       
+        try {
+            // connect to our db to make queries
+            await client.connect()
+           const result = await client.query("INSERT INTO products(name, description, price) VALUES($1, $2, $3)", 
+           product.name,
+           product.description,
+           product.price)
+
+           response.status = 201
+           response.body = {
+               success: true,
+               data: product
+           }
+       } catch (error) {
+           response.status = 500
+           response.body = {
+               success: false,
+               message: `SERVER ERROR ${error}`
+           }
+       } finally {
+           await client.end()
+       }
     }
 }   
 
